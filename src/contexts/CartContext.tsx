@@ -1,7 +1,5 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 export interface Product {
@@ -34,8 +32,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   // Helper function to handle errors
   const handleError = (error: Error | null) => {
@@ -47,48 +44,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  // Fetch cart items when user changes
-  useEffect(() => {
-    if (user) {
-      fetchCartItems();
-
-      // Set up real-time subscription for cart updates
-      const cartSubscription = supabase
-        .channel('cart_changes')
-        .on('postgres_changes', 
-          {
-            event: '*',
-            schema: 'public',
-            table: 'cart',
-            filter: `user_id=eq.${user.id}`
-          }, 
-          () => {
-            fetchCartItems();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(cartSubscription);
-      };
-    } else {
-      setCartItems([]);
-      setLoading(false);
-    }
-  }, [user]);
-
   const fetchCartItems = async () => {
-    if (!user) return;
-
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('cart')
-        .select('*, product:product_id(*)')
-        .eq('user_id', user.id);
+        .select('*, product:product_id(*)');
 
       if (handleError(error)) {
-        // Convert the response to our CartItem type
         const items = data?.map(item => ({
           id: item.id,
           product_id: item.product_id,
@@ -106,8 +69,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addToCart = async (productId: string) => {
-    if (!user) return;
-
     try {
       setLoading(true);
       
@@ -125,7 +86,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: existingItem, error: existingError } = await supabase
         .from('cart')
         .select('*')
-        .eq('user_id', user.id)
         .eq('product_id', productId)
         .maybeSingle();
 
@@ -146,7 +106,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         result = await supabase
           .from('cart')
           .insert({
-            user_id: user.id,
             product_id: productId,
             quantity: 1,
           });
@@ -168,7 +127,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
-    if (!user || quantity < 0) return;
+    if (quantity < 0) return;
 
     try {
       setLoading(true);
@@ -182,8 +141,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase
         .from('cart')
         .update({ quantity, updated_at: new Date().toISOString() })
-        .eq('id', itemId)
-        .eq('user_id', user.id);
+        .eq('id', itemId);
 
       if (error) throw error;
       
@@ -199,16 +157,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = async (itemId: string) => {
-    if (!user) return;
-
     try {
       setLoading(true);
       
       const { error } = await supabase
         .from('cart')
         .delete()
-        .eq('id', itemId)
-        .eq('user_id', user.id);
+        .eq('id', itemId);
 
       if (error) throw error;
       
@@ -226,15 +181,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    if (!user) return;
-
     try {
       setLoading(true);
       
       const { error } = await supabase
         .from('cart')
-        .delete()
-        .eq('user_id', user.id);
+        .delete();
 
       if (error) throw error;
       
