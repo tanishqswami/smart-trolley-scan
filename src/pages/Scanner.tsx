@@ -1,7 +1,5 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/lib/supabase';
 import { Barcode, Camera, Check, X } from 'lucide-react';
@@ -19,7 +17,6 @@ const Scanner = () => {
   const [scannedProduct, setScannedProduct] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const { user } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   
@@ -51,16 +48,6 @@ const Scanner = () => {
   const processBarcode = async (barcode: string) => {
     try {
       setIsProcessing(true);
-      
-      // Record scan in database
-      if (user) {
-        await supabase.from('barcode_scans').insert({
-          barcode: barcode,
-          user_id: user.id,
-          status: 'scanned',
-          scan_timestamp: new Date().toISOString()
-        });
-      }
       
       // Look up product by barcode
       const { data, error } = await supabase
@@ -197,14 +184,6 @@ const Scanner = () => {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => navigate('/products')}>
-            View Products
-          </Button>
-          <Button onClick={() => navigate('/cart')}>
-            View Cart
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );
