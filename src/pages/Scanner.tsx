@@ -43,9 +43,6 @@ const Scanner = () => {
     
     setLastScanned(barcode);
     processBarcode(barcode);
-    // Block further scans for 5 seconds
-    setIsProcessing(true);
-    setTimeout(() => setIsProcessing(false), 5000);
   }
 
   // Process barcode manually or from camera
