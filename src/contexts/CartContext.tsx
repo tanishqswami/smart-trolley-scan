@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -35,6 +36,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // Helper function to handle errors
+  const handleError = (error: Error | null) => {
+    if (error) {
+      console.error('Error:', error);
+      toast.error(error.message || 'An error occurred');
+      return false;
+    }
+    return true;
+  };
 
   // Fetch cart items when user changes
   useEffect(() => {
