@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Navbar from "./components/Navbar";
-import PrivateRoute from "./components/PrivateRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -36,31 +35,10 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
 
-                    {/* Protected Routes */}
-                    <Route
-                      path="/products"
-                      element={
-                        <PrivateRoute>
-                          <Products />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/scanner"
-                      element={
-                        <PrivateRoute>
-                          <Scanner />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/cart"
-                      element={
-                        <PrivateRoute>
-                          <Cart />
-                        </PrivateRoute>
-                      }
-                    />
+                    {/* Making previously protected routes public */}
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/scanner" element={<Scanner />} />
+                    <Route path="/cart" element={<Cart />} />
 
                     {/* Catch-all for 404 */}
                     <Route path="*" element={<NotFound />} />
