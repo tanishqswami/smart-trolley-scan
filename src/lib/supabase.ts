@@ -1,10 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-
-// We'll use environment variables or public project URL and anon key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
 // Type definition for our database
 export type Database = {
@@ -67,7 +64,8 @@ export type Database = {
   };
 };
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Use the pre-configured supabase client from the integrations directory
+export const supabase = supabaseClient;
 
 // Helper function to handle errors
 export const handleError = (error: Error | null) => {
