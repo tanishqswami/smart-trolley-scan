@@ -17,6 +17,7 @@ const Scanner = () => {
   const [scannedProduct, setScannedProduct] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [scanCooldown, setScanCooldown] = useState(false);
   
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -39,9 +40,10 @@ const Scanner = () => {
 
   // Process barcode detection
   function handleDetection(barcode: string) {
-    if (barcode === lastScanned || isProcessing) return;
-    
+    if (barcode === lastScanned || isProcessing || scanCooldown) return;
     setLastScanned(barcode);
+    setScanCooldown(true);
+    setTimeout(() => setScanCooldown(false), 5000); // 5 seconds cooldown
     processBarcode(barcode);
   }
 
@@ -50,14 +52,11 @@ const Scanner = () => {
     try {
       setIsProcessing(true);
       
-      const cleanBarcode = barcode.trim();
-      console.log('Scanned barcode:', cleanBarcode);
-      
       // Look up product by barcode
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('barcode', cleanBarcode)
+        .eq('barcode', barcode)
         .single();
         
       if (error) {
