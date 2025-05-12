@@ -60,7 +60,11 @@ const Scanner = () => {
         .single();
         
       if (error) {
-        toast.error('Product not found');
+        if (error.code === 'PGRST116') {
+          toast.error('Product not found. Please check the barcode and try again.');
+        } else {
+          toast.error(`Error: ${error.message}`);
+        }
         setScannedProduct(null);
         return;
       }
