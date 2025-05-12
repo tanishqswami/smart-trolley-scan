@@ -1,4 +1,3 @@
-
 import { useCallback, useRef } from 'react';
 import Quagga from '@ericblade/quagga2';
 import { toast } from 'sonner';
@@ -51,7 +50,16 @@ export function useQuagga(
         Quagga.start();
         
         // Set up detection callback
+        let lastScanTime = 0;
+        const cooldownPeriod = 2000; // 2 seconds cooldown
+
         Quagga.onDetected((result) => {
+          const currentTime = Date.now();
+          if (currentTime - lastScanTime < cooldownPeriod) {
+            return; // Ignore scans during cooldown
+          }
+          lastScanTime = currentTime;
+
           // Get the highest confidence result
           if (result && result.codeResult) {
             // Format the barcode
